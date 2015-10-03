@@ -3,6 +3,8 @@ include "config.php";
 
 $con = connection_query();
 
+//TODO quitar todo lo de puntajes de colegios
+
 $array_usuarios = array();
 $array_puntos = array();
 $array_nombre = array();
@@ -154,19 +156,36 @@ echo $html;
                                          WHERE usuario  = '$array_usuarios[$i]' AND
                                                problema = '$array_ejercicios[$j]'");
                               $hayPuntaje = false;
+                              $puntos = 0;
+                              $mayor = 0;
+                              $aprobadasMayor = 0;
+                              $fechaDeMayor;
                               while($row = mysqli_fetch_array($result)) {
-                                    $hayPuntaje = true;
-                                    echo "<td>";
-                                    if($row['aprobadas'] / $row['totalPruebas'] >= 0.5){
-                                        echo "<font color='green'>";
-                                    }else{
-                                        echo "<font color='red'>";
-                                    }
-                                    echo $row['aprobadas'] ."/".$row['totalPruebas']. "
-                                            </font></td>";
+                                $hayPuntaje = true;
+                                $fecha_envio = strtotime( $row['fecha'] );
+                                $fecha_maxi = strtotime( $row['fecha_maxima'] );
+
+                                $aprobadas = $row['aprobadas'];
+                                $totalPruebas = $row['totalPruebas'];
+                                if($fecha_maxi - $fecha_envio >= 0){
+                              	if($aprobadas/$totalPruebas > $mayor){
+                                      $mayor = $aprobadas/$totalPruebas;
+                                      $aprobadasMayor = $aprobadas;
+                                      $fechaDeMayor = $fecha_envio;
+                                  }
+                                }
                               }
 
-                               if(!$hayPuntaje){
+                              if($hayPuntaje){
+                                  echo "<td>";
+                                  if($aprobadasMayor / $totalPruebas >= 0.5){
+                                      echo "<font color='green'>";
+                                  }else{
+                                      echo "<font color='red'>";
+                                  }
+                                  echo $aprobadasMayor ."/". $totalPruebas. "
+                                          </font></td>";
+                              }else{
                                    echo "<td> <font color='red'>-/- </font></td>";
                                }
 

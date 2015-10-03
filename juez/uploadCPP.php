@@ -84,13 +84,14 @@ echo $html;
                         $contBienNormal = 0;
 
                         for($i = 0; $i < $totalNormal; $i++){
-                           echo 'nombre= ' . $archivos[$i] . '<br>';
+                            //echo 'nombre= ' . $archivos[$i] . '<br>';
     						exec('cp problemas/' . $problema_nombre . '/normal/'
                                   . $archivos[$i] .
                                  ' uploads/api/' . $problema_nombre . '.cpp');
 
-    						exec('c++ -o clientApi uploads/api/' . $problema_nombre  . '.cpp', $compilacion, $return);
-                            echo "retrono de compilar " . $return . "<br>";
+    						exec('g++ -o clientApi uploads/api/*.cpp', $compilacion, $return);
+                            //echo "g++ -o clientApi uploads/api/*.cpp<br>";
+                            //echo "retrono de compilar " . $return . "<br>";
                             if($return == 1){
 
                                 echo "<font color='red'> Compilation Error!! </font>
@@ -131,6 +132,7 @@ echo $html;
                                     echo "<font color='red'> No aprobó la prueba!! </font>
                                           <br>";
                                 }else{
+                                    echo "return " . $return . "<br>";
                                     echo "<font color='red'> Runtime Error!! </font>
                                           <br>";
                                 }
@@ -199,14 +201,12 @@ echo $html;
                                      " preubas assert aprobadas </font>
                                       <br><br>";
                              }
-
-                            //guardar en la base de datos
-                            guardarSolucion($usuario, $problema_nombre,
-                                            $contBienNormal+$contBienAssert, $totalNormal+$totalAssert);
-
                         }
+                        //guardar en la base de datos
+                        guardarSolucion($usuario, $problema_nombre,
+                                        $contBienNormal+$contBienAssert, $totalNormal+$totalAssert);
                         //delete everything inside api folder
-                        exec('rm uploads/api/*');
+                        exec('rm -r uploads/api/*');
 					}
                     //delete zip uploaded
                     exec('rm uploads/api.zip');
