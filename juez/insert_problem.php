@@ -45,7 +45,7 @@ echo $html;
 					$desc = $_POST["descripcion"];
 					$fecha = $_POST["fecha"];
 					$lenguaje = "cpp";
-					$archivo = $nombre . ".zip";
+					$archivo = $nombre . ".cpp";
 
 					  $sql = "INSERT INTO problema (nombre, descripcion, codigo, fecha_maxima, lenguaje)
 					  VALUES ('$nombre', '$desc','$archivo', '$fecha', '$lenguaje')";
@@ -67,19 +67,16 @@ echo $html;
 					$target_path = $target_path . $archivo;
 
 					if(move_uploaded_file($_FILES['uploadedfile']['tmp_name'], $target_path)) {
-
-						exec('unzip '  . $target_path .  ' -d problemas/' . $nombre);
-						exec('rm ' . $target_path);
 						echo "The file ".  basename( $_FILES['uploadedfile']['name']).
 						" has been uploaded";
 					} else{
 						echo "There was an error uploading the file, please try again!";
 					}
 
-					/*Converts to unix format*/
-					$file = file_get_contents("problemas/code.dis");
-					$file = str_replace("\r", "", $file);
-					file_put_contents("problemas/code.dis", $file);
+					//Converts to unix format
+					//$file = file_get_contents("problemas/code.dis");
+					//$file = str_replace("\r", "", $file);
+					//file_put_contents("problemas/code.dis", $file);
 
 
 

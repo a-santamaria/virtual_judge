@@ -2,6 +2,7 @@
 include_once "config.php";
 include_once "guardarSolucion.php";
 
+
 $mensaje = 'sin cambiar';
 
 //COnectamos a base de datos.
@@ -73,140 +74,90 @@ echo $html;
 					}
                     $compilationError = false;
 					if($lenguaje == "cpp"){
-						//descomprimir el archivo y ejecutar cliente
+						//descomprimir el archivo
 						exec('unzip uploads/api.zip -d uploads/api');
 
-                        // for de test normales
-                        exec('ls -1 problemas/' . $problema_nombre . '/normal/ ', $archivos, $return);
-                        //echo 'retrun= ' . $return . '<br> para problemas/' . $problema_nombre . '/normal/ ';
-                        //echo 'cont= ' . count($archivos) . '<br>';
-                        $totalNormal = count($archivos);
-                        $contBienNormal = 0;
+                        //copiar prueba unitaria a la carpeta api
+                        exec('cp problemas/' . $problema_nombre . '.cpp' .
+                             ' uploads/api/' . $problema_nombre . '.cpp');
 
-                        for($i = 0; $i < $totalNormal; $i++){
-                            //echo 'nombre= ' . $archivos[$i] . '<br>';
-    						exec('cp problemas/' . $problema_nombre . '/normal/'
-                                  . $archivos[$i] .
-                                 ' uploads/api/' . $problema_nombre . '.cpp');
+                        //compilar con prueba unitaria
+                        exec('g++ -o uploads/api/unitTest uploads/api/*.cpp -lcppunit', $compilacion, $return);
+                        echo "retrono de compilar " . $return . "<br>";
 
-    						exec('g++ -o clientApi uploads/api/*.cpp', $compilacion, $return);
-                            //echo "g++ -o clientApi uploads/api/*.cpp<br>";
-                            //echo "retrono de compilar " . $return . "<br>";
-                            if($return == 1){
+                        if($return == 1){
 
-                                echo "<font color='red'> Compilation Error!! </font>
-                                     <br>
-                                     Recuerda que el nombre del archivo .h debe ser lista.h
-                                     <br>
-                                     Prueba compilar tu TAD antes de enviarlo
-                                     <br>";
-                                $compilationError = true;
-                                break;
+                            echo "<font color='red'> Compilation Error!! </font>
+                                 <br>
+                                 Recuerda que el nombre del archivo .h debe ser lista.h
+                                 <br>
+                                 Prueba compilar tu TAD antes de enviarlo
+                                 <br>";
+                            $compilationError = true;
+                            break;
+                        }else{
+                            //ejecutarPruebas
+                            $salida = "";
+                            exec('timeout -k 2 2  uploads/api/unitTest > uploads/api/salida.txt', $salida, $return);
+
+                            echo "retrono de ejecutar " . $return . "<br>";
+                            for($j = 0; $j < count($salida); $j++)
+                            {
+                                print $salida[$j];
+                                echo '<br>';
+                            }
+
+                            if($return == 124){
+                                echo "<font color='red'> Time Limit!! </font>
+                                      <br>";
+                            }else if($return == 0){
+                                //$contBienNormal++;
+
+                            }else if($return == 127){
+                                //no se
+                            }else if($return == 1){
+                                //retorno de que no sirvieron todaas las pruebas
                             }else{
-                                exec('mv clientApi uploads/api');
-                                $salida = "";
-        						exec('timeout -k 2 2  ./uploads/api/clientApi', $salida, $return);
-
-
-
-                                for($j = 0; $j < count($salida); $j++)
-                                {
-                                    print $salida[$j];
-                                    echo '<br>';
-                                }
-
-                                //echo "retrono de ejecutar " . $return . "<br>";
-
-                                //retorno assert
-                                if($return == 134){
-                                    echo "<font color='red'> Assert cuando no se debia llamar </font>
-                                          <br>";
-                                }else if($return == 124){
-                                    echo "<font color='red'> Time Limit!! </font>
-                                          <br>";
-                                }else if($return == 0){
-                                    $contBienNormal++;
-
-                                }else  if($return == -1){
-                                    //no aprobo la prueba
-                                    echo "<font color='red'> No aprobó la prueba!! </font>
-                                          <br>";
-                                }else{
-                                    echo "return " . $return . "<br>";
-                                    echo "<font color='red'> Runtime Error!! </font>
-                                          <br>";
-                                }
-                            }
-                            exec('rm uploads/api/' . $problema_nombre . '.cpp');
-                        }
-                        echo "<br>
-                             <font color='green'> " . $contBienNormal . "/" . $totalNormal .
-                             " preubas normales aprobadas </font>
-                              <br><br>";
-
-                        if(!$compilationError){
-                            // for de test assert
-                            exec('ls -1 problemas/' . $problema_nombre . '/assert/ ', $archivosAssert, $return);
-
-                            $totalAssert = count($archivosAssert);
-                            //echo "total = " . $total . "<br>";
-                            $contBienAssert = 0;
-                            for($i = 0; $i < $totalAssert; $i++){
-                                //echo 'nombre= ' . $archivosAssert[$i] . '<br>';
-        						exec('cp problemas/' . $problema_nombre . '/assert/'
-                                      . $archivosAssert[$i] .
-                                     ' uploads/api/' . $problema_nombre . '.cpp');
-                                $compilacion = "";
-        						exec('c++ -o clientApi uploads/api/*.cpp', $compilacion, $return);
-
-                                if($return == 1){
-                                    echo "<font color='red'> Compilation Error!! </font>
-                                         <br>
-                                         Recuerda que el nombre del archivo .h debe ser lista.h
-                                         <br>
-                                         Prueba compilar tu TAD antes de enviarlo
-                                         <br>";
-                                    //TODO matar todo
-                                }else{
-                                    exec('mv clientApi uploads/api');
-                                    $salida2 = "";
-            						exec('timeout -k 2 2 ./uploads/api/clientApi', $salida2, $return2);
-                                    for($j = 0; $j < count($salida2); $j++)
-                                    {
-                                        print $salida2[$j];
-                                        echo '<br>';
-                                    }
-                                    //echo "retrono de ejecutar " . $return2 . "<br>";
-                                    //retorno assert
-                                    if($return2 == 134){
-                                        echo "Preuba de Asser aprobada <br>";
-                                              $contBienAssert++;
-                                    }else if($return2 == 0){
-                                        echo "Se esperaba un Assert en esta prueba!!<br>";
-
-                                    }else if($return2 == 124){
-                                        echo "<font color='red'> Time Limit!! </font>
-                                              <br>";
-                                    }else{
-                                        echo "<font color='red'> Runtime Error!! </font>
-                                              <br>";
-                                    }
-                                }
-                                exec('rm uploads/api/' . $problema_nombre . '.cpp');
+                                /* echo "return " . $return . "<br>";
+                                echo "<font color='red'> Runtime Error!! </font>
+                                      <br>";
+                                */
                             }
 
-                            if($totalAssert != 0){
-                                echo "<br>
-                                     <font color='green'> " . $contBienAssert . "/" . $totalAssert .
-                                     " preubas assert aprobadas </font>
-                                      <br><br>";
-                             }
+                            $FeedBackXML = file_get_contents('cppTestResults.xml');
+                            //echo $FeedBackXML;
+
+                            $xml = new SimpleXMLElement($FeedBackXML);
+
+
+                            foreach ($xml->FailedTests->FailedTest as $failed) {
+                                echo "-->Prueba: " . (string) $failed->Name . "<br>";
+                                echo (string)$failed->Message . "<br>";
+                                echo "<font color='red'>Fallada</font><br><br>";
+                            }
+
+                            foreach ($xml->SuccessfulTests->Test as $passed) {
+                                echo "-->Prueba: " . (string) $passed->Name . "<br>";
+                                echo "<font color='green'>Aprobada</font><br><br>";
+                            }
+
+                            echo "----------------Estadisticas-----------------<br>";
+                            $numTests = (int)$xml->Statistics->Tests;
+                            $numFails = (int)$xml->Statistics->FailuresTotal;
+                            echo 'Pruebas: ' . (string)$xml->Statistics->Tests . ' ';
+                            echo 'Errores: ' . (string)$xml->Statistics->Errors . ' ';
+                            echo 'Fallas: ' . (string)$xml->Statistics->Failures . ' ';
+                            //echo 'Total Fallas: ' . (string)$xml->Statistics->FailuresTotal. '<br>';
+
                         }
                         //guardar en la base de datos
                         guardarSolucion($usuario, $problema_nombre,
-                                        $contBienNormal+$contBienAssert, $totalNormal+$totalAssert);
+                                        $numTests-$numFails, $numTests);
+
                         //delete everything inside api folder
                         exec('rm -r uploads/api/*');
+                        //delete xml results file
+                        exec('rm cppTestResults.xml');
 					}
                     //delete zip uploaded
                     exec('rm uploads/api.zip');
